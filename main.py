@@ -1,3 +1,4 @@
+import automobile
 from alert import AlertManager
 from autonoleggio import Autonoleggio
 import flet as ft
@@ -36,9 +37,10 @@ def main(page: ft.Page):
     lista_auto = ft.ListView(expand=True, spacing=5, padding=10, auto_scroll=True)
 
     # Tutti i TextField per le info necessarie per aggiungere una nuova automobile (marca, modello, anno, contatore posti)
-    input_marca = ft.TextField(label="Marca")
-    input_modello = ft.TextField(label="Modello")
-    input_anno = ft.TextField(label="Anno")
+    input_marca = ft.TextField(value="",label="Marca")
+    input_modello = ft.TextField(value="",label="Modello")
+    input_anno = ft.TextField(value="",label="Anno")
+    input_posti=ft.IconButton()
 
     #non si usa value, perchè non stiamo modificando dati già esistenti.
 
@@ -74,7 +76,28 @@ def main(page: ft.Page):
 
         txtOut.value = currentVal - 1
         txtOut.update()
-
+    def conferma_automobili(e):
+        automobile.marca=input_marca.value
+        automobile.modello=input_modello.value
+        automobile.anno=input_anno.value
+        automobile.posti=txtOut.value
+        if input_marca.value !="" and input_modello.value !="":
+            if int(input_anno.value)>1885 and int(input_anno.value)<2025:
+                if int(txtOut.value)>0:
+                    auto=autonoleggio.aggiungi_automobile(input_marca.value, input_modello.value, input_anno.value,txtOut.value)
+                    codice=auto.codice
+                    if auto.disponibile==True:
+                        libera="disponibile"
+                    else:
+                        libera="noleggiata"
+                    lista_auto.controls.append(ft.Text(f"{codice} corretto | {input_marca.value}, {input_modello.value}, {input_anno.value}")) #....
+                else:
+                    lista_auto.controls.append(ft.Text("inserire un numero di post maggiore di 0"))
+            else:
+                lista_auto.controls.append(ft.Text("inserire un anno compreso tra il 1886 e l'anno corrente"))
+        else:
+            lista_auto.controls.append(ft.Text("inserire una marca e un modello"))
+        page.update()
     # --- EVENTI ---
     toggle_cambia_tema = ft.Switch(label="Tema scuro", value=True, on_change=cambia_tema)
     pulsante_conferma_responsabile = ft.ElevatedButton("Conferma", on_click=conferma_responsabile)
@@ -91,9 +114,7 @@ def main(page: ft.Page):
     txtOut = ft.TextField(width=100, disabled=True,
                           value=0, border_color="green",
                           text_align=ft.TextAlign.CENTER)
-    row1 = ft.Row([btnMinus, txtOut, btnAdd],
-                  alignment=ft.MainAxisAlignment.CENTER)
-    page.add(row1)
+    pulsante_conferma_automobile=ft.ElevatedButton("Conferma", on_click=conferma_automobili)
 
     # --- LAYOUT ---
     page.add(
@@ -112,6 +133,13 @@ def main(page: ft.Page):
 
         # Sezione 3
         ft.Text("Aggiungi nuova automobile", size=20),
+        ft.Row(spacing=20,
+               controls=[input_marca,input_modello,input_anno,btnMinus,txtOut,btnAdd],
+               alignment=ft.MainAxisAlignment.CENTER),
+        ft.Row(spacing=0,
+               controls=[pulsante_conferma_automobile],
+               alignment=ft.MainAxisAlignment.CENTER),
+
 
         # Sezione 4
         ft.Divider(),
